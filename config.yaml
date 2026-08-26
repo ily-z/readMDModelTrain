@@ -1,0 +1,71 @@
+# MD-Deployer: Custom Transformer for Markdown -> Deployable App
+# A 37M parameter decoder-only transformer
+
+model:
+  vocab_size: 8192
+  d_model: 512
+  n_layers: 8
+  n_heads: 8
+  d_ff: 2048
+  block_size: 512
+  dropout: 0.1
+  tie_embeddings: true
+  norm: rmsnorm
+  activation: swiglu
+  positional: rope
+
+output_schema:
+  required_fields:
+    - project_name
+    - language
+    - files
+  optional_fields:
+    - framework
+    - dependencies
+    - environment_variables
+    - build_commands
+    - start_command
+    - port
+    - docker
+    - prose_context
+    - metadata
+
+tokenizer:
+  type: byte-level-bpe
+  vocab_size: 8192
+  min_frequency: 2
+
+training:
+  pretrain:
+    batch_size: 64
+    learning_rate: 3.0e-4
+    lr_schedule: cosine
+    lr_min: 3.0e-5
+    warmup_steps: 500
+    max_steps: 20000
+    weight_decay: 0.1
+    grad_clip: 1.0
+    bf16: true
+  distill:
+    batch_size: 32
+    learning_rate: 1.0e-4
+    max_steps: 10000
+    weight_decay: 0.1
+    grad_clip: 1.0
+    bf16: true
+  sft:
+    batch_size: 16
+    learning_rate: 5.0e-5
+    warmup_steps: 100
+    max_steps: 5000
+    weight_decay: 0.1
+    grad_clip: 1.0
+    bf16: true
+
+hardware:
+  device: cuda
+  compile: true
+  checkpoint_dir: checkpoints
+  log_interval: 100
+  eval_interval: 1000
+  save_interval: 2000
